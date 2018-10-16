@@ -1,4 +1,4 @@
-%% Variotion A function
+%% Variation A function
 % Going from x_init to x_final
 
 % n = norm to the power n // m = norm value
