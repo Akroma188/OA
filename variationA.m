@@ -40,9 +40,11 @@ function [count, dev] = variationA(lambda, n_power, m)
 
         p1_cost=0;
         p2_cost=0;
+        % do first part of the sum
         for i=1:K
            p1_cost = p1_cost + pow_pos(norm(E*x(:,tau(:,i)) - w(:,i)), 2);  
         end
+        % do second part of the sum
         for j=2:T-1
             if n_power>1
                 p2_cost = p2_cost +  pow_pos(norm(u(:,j) - u(:,j-1), m), n_power);
@@ -52,6 +54,7 @@ function [count, dev] = variationA(lambda, n_power, m)
         end
         cost = p1_cost + lambda*p2_cost;
         minimize(cost)
+        % constraints
         subject to
             x(:,1) == x_init;
             x(:,T) == x_final;
