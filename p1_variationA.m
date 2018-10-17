@@ -101,7 +101,7 @@ function [count, dev] = p1_variationA(lambda, n_power, m)
     plot(linspace(0, 78,79), u(1, 1:79))
     hold on
     plot(linspace(0, 78,79), u(2, 1:79))
-    legend(' u_{1} ', ' u_{2} ','Interpreter', 'Latex')
+    legend(' u_{1}(t) ', ' u_{2}(t) ','Interpreter', 'Latex')
     if n_power == 2
         tle = strcat('\begin{tabular}{c} Control Signal \\', '$ {l}_', num2str(m),'^',num2str(n_power),' $',' Regularizer',' // ',strcat('$ \lambda $ = ', num2str(lambda)), '\end{tabular}');
     else

@@ -100,7 +100,7 @@ function [count, dev] = p1_variationB()
     plot(linspace(0, 78,79), u(1, 1:79))
     hold on
     plot(linspace(0, 78,79), u(2, 1:79))
-    legend(' u_{1} ', ' u_{2} ','Interpreter', 'Latex')
+    legend(' u_{1}(t) ', ' u_{2}(t) ','Interpreter', 'Latex')
     tle = strcat('\begin{tabular}{c} Control Signal \\','Variation B', '\end{tabular}');
     title(tle, 'Interpreter', 'Latex')
     xlabel('t','Interpreter', 'Latex')
