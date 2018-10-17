@@ -1,11 +1,9 @@
 %% Variation A function
-% Going from x_init to x_final
+% approximate intermediate regions and simple control signals
 
-% n = norm to the power n // m = norm value
-% Plots Optimal Position and Control Signal
-% Returns number of times u(t) has changed and the deviation for each lambda
-function [count, dev] = variationA(lambda, n_power, m)
-    %A and b matrix
+
+function [count, dev] = p1_variationB()
+ %A and b matrix
     A = [1 0 0.1 0; 0 1 0 0.1; 0 0 0.9 0; 0 0 0 0.9];
     b = [0 0; 0 0; 0.1 0; 0 0.1];
 
@@ -15,23 +13,25 @@ function [count, dev] = variationA(lambda, n_power, m)
     %lambda = [0.001 0.01 0.1 1 10 100 1000];
     % Elapsed Time
     T = 81;
-
+    lambda=0.1;
     %Position x = [p v]
     p_init = [0 5];
     p_final = [15 -15];
     x_init = [0; 5; 0; 0];
     x_final = [15; -15; 0; 0];
 
-    % Waypoints Position 
+    % Waypoints Position and radius
     K = 6;
-    w=[10 20 30 30 20 10; 10 10 10 0 0 -10];
-
+    c = [10 20 30 30 20 10; 10 10 10 0 0 -10];
+    r = 2;
+    
     % Desired Time on Waypoint
     tau = [10 25 30 40 50 60];
 
     % Maximum force
     U_max = 100;
 
+    
 %% CVX algorithm
 % 
     cvx_begin quiet
@@ -42,15 +42,17 @@ function [count, dev] = variationA(lambda, n_power, m)
         p2_cost=0;
         % do first part of the sum
         for i=1:K
-           p1_cost = p1_cost + pow_pos(norm(E*x(:,tau(:,i)) - w(:,i)), 2);  
+           x_aux = E*x(:,tau(i));
+           norm_aux(1) = x_aux(1)-c(1,i);
+           norm_aux(2) = x_aux(2)-c(2,i);
+           d_aux = norm(norm_aux);
+
+           d=  d_aux - r;
+           p1_cost = p1_cost + pow_pos(d, 2);
         end
         % do second part of the sum
         for j=2:T-1
-            if n_power>1
-                p2_cost = p2_cost +  pow_pos(norm(u(:,j) - u(:,j-1), m), n_power);
-            else
-                p2_cost = p2_cost +  norm(u(:,j) - u(:,j-1), m);
-            end
+            p2_cost = p2_cost +  norm(u(:,j) - u(:,j-1));
         end
         cost = p1_cost + lambda*p2_cost;
         minimize(cost)
@@ -64,8 +66,8 @@ function [count, dev] = variationA(lambda, n_power, m)
             for t=1:T-1
                x(:,t+1) == A*x(:,t) + b*u(:,t); 
             end
-    cvx_end
 
+    cvx_end
 %% a) - Optimal Positions
 %
 
@@ -75,26 +77,23 @@ function [count, dev] = variationA(lambda, n_power, m)
     hold on
 
     % plot waypoints
-    plot(w(1,:), w(2,:), 's','MarkerSize',10, 'LineWidth', 2)
+    plot(c(1,:), c(2,:), 'o','MarkerSize',10, 'LineWidth', 2)
 
     % plot the time tau closest to waypoint
     for i=1:6
         aux(:,i) = [x(1,tau(i)) x(2,tau(i))]';
     end
     plot(aux(1,:), aux(2,:), 'mo','MarkerSize', 10)
-    legend('p(t)','\omega_k','p(\tau_k)','Interpreter', 'Latex')
-    if n_power == 2
-        tle = strcat('\begin{tabular}{c} Optimal Position \\', '$ {l}_', num2str(m),'^',num2str(n_power),' $',' Regularizer',' // ',strcat('$ \lambda $ = ', num2str(lambda)), '\end{tabular}');
-    else
-        tle = strcat('\begin{tabular}{c} Optimal Position \\', '$ {l}_', num2str(m),' $',' Regularizer',' // ',strcat('$ \lambda $ = ', num2str(lambda)), '\end{tabular}');
-    end
+    legend('p(t)','D(c_k, r)','p(\tau_k)','Interpreter', 'Latex')
+
+    tle = strcat('\begin{tabular}{c} Optimal Position \\','Variation B','\end{tabular}');
 
     title(tle, 'Interpreter', 'Latex')
     xlabel('$ p_1 $ ','Interpreter', 'Latex')
     ylabel('$ p_2 $','Interpreter', 'Latex')
-
-    %% b) Control Signal
-    %
+    
+%% b) Control Signal
+%
 
     % plot util point T-1 
     figure 
@@ -102,11 +101,7 @@ function [count, dev] = variationA(lambda, n_power, m)
     hold on
     plot(linspace(0, 78,79), u(2, 1:79))
     legend(' u_{1} ', ' u_{2} ','Interpreter', 'Latex')
-    if n_power == 2
-        tle = strcat('\begin{tabular}{c} Control Signal \\', '$ {l}_', num2str(m),'^',num2str(n_power),' $',' Regularizer',' // ',strcat('$ \lambda $ = ', num2str(lambda)), '\end{tabular}');
-    else
-        tle = strcat('\begin{tabular}{c} Control Signal \\', '$ {l}_', num2str(m),' $',' Regularizer',' // ',strcat('$ \lambda $ = ', num2str(lambda)), '\end{tabular}');
-    end
+    tle = strcat('\begin{tabular}{c} Control Signal \\','Variation B', '\end{tabular}');
     title(tle, 'Interpreter', 'Latex')
     xlabel('t','Interpreter', 'Latex')
     ylabel('$ u_{1,2} $ ','Interpreter', 'Latex')
@@ -121,15 +116,18 @@ function [count, dev] = variationA(lambda, n_power, m)
         end
     end
     fprintf('u(t) has changed: %d times \n', count)
-
-%% d) - Deviation
+%% d) - Mean deviation
 %
-    dev = 0
+    dev = 0;
     for k=1:K
-        dev = dev + norm(E*x(:,tau(:,k)) - w(:,k));
-    end
-    dev = (1/K) * dev;
-    %fprintf('deviation = %f for lamda = %f \n', dev, lambda)
+        x_aux = E*x(:,tau(k));
+        norm_aux(1) = x_aux(1)-c(1,k);
+        norm_aux(2) = x_aux(2)-c(2,k);
+        d_aux = norm(norm_aux);
 
+        d=  d_aux - r;
+        dev = dev + d;
+    end
+    fprintf('deviation = %f for lamda = %f \n', dev, lambda)
 
 end

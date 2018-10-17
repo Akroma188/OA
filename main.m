@@ -8,7 +8,7 @@ function main
 %% 2.2
 %
     for i=1:7
-       [c, d] = variationA(lambda(i), 2,2);
+       [c, d] = p1_variationA(lambda(i), 2,2);
        count(i)=c;
        dev(i)=d;
     end
@@ -29,7 +29,7 @@ function main
 %
 
     for i=1:7
-       [c, d] = variationA(lambda(i), 1,2);
+       [c, d] = p1_variationA(lambda(i), 1,2);
        count(i)=c;
        dev(i)=d;
     end
@@ -50,7 +50,7 @@ function main
 %% 2.4
 %    
     for i=1:7
-       [c, d] = variationA(lambda(i), 1,1);
+       [c, d] = p1_variationA(lambda(i), 1,1);
        count(i)=c;
        dev(i)=d;
     end
