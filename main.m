@@ -74,4 +74,26 @@ function main
 %    
 
 p1_variationB()
+
+%% Variation C
+%    
+
+%% 4.2 and 4.3
+%
+
+    n_power = [2 1];
+    
+    [x_old, u_old, count] = p1_variationC(n_power(1));
+    [x_old, u_old, count] = p1_variationC(n_power(2));
+    
+
+%% 4.4
+% 
+    M = 10
+    
+    for m=1:M
+        [x_old, u_old] = p1_variationC_weights(x_old, u_old, m);
+    end
+
+
 end

@@ -74,4 +74,22 @@ function main
 %    
 
 p1_variationB()
+
+%% Variation C
+%    
+
+%% 4.2 and 4.3
+%
+
+    n_power = [2 1];
+    
+    [x_old, u_old, count] = p1_variationC(n_power(1))
+    
+
+%% 4.4
+% 
+    M = 10
+    p1_variationC(2)
+
+
 end

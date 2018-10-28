@@ -1,11 +1,13 @@
-%% Variation A function
-% approximate intermediate points and simple control signals
+%% Variation C interesting functions
+% exact intermediate points
 
-% n = norm to the power n // m = norm value
-% Plots Optimal Position and Control Signal
-% Returns number of times u(t) has changed and the deviation for each lambda
-function [count, dev] = p1_variationA(lambda, n_power, m)
-    %A and b matrix
+
+
+function [x_old, u_old] = p1_variationC_weights(x_old, u_old, M)
+%% Constant Definition
+% approximate intermediate regions and simple control signals
+
+   %A and b matrix
     A = [1 0 0.1 0; 0 1 0 0.1; 0 0 0.9 0; 0 0 0 0.9];
     b = [0 0; 0 0; 0.1 0; 0 0.1];
 
@@ -30,29 +32,31 @@ function [count, dev] = p1_variationA(lambda, n_power, m)
     tau = [10 25 30 40 50 60] + 1;
 
     % Maximum force
-    U_max = 100;
-
+    U_max = 15;
+    
+    % Epsilon 
+    e = 10^-6;
+    
+    x_old = double(x_old);
+    u_old = double(u_old);
+    
 %% CVX algorithm
 % 
+    
     cvx_begin quiet
         variable x(4,T);
         variable u(2,T); 
 
         p1_cost=0;
-        p2_cost=0;
         % do first part of the sum
         for i=1:K
-           p1_cost = p1_cost + pow_pos(norm(E*x(:,tau(i)) - w(:,i)), 2);  
+            % denominator
+            den = norm(E*x(:,tau(i)) - w(:,i))/(norm(E*x_old(:,tau(i))- w(:,i)) + e);
+
+            p1_cost = p1_cost + den;
         end
         % do second part of the sum
-        for j=2:T-1
-            if n_power>1
-                p2_cost = p2_cost +  pow_pos(norm(u(:,j) - u(:,j-1), m), n_power);
-            else
-                p2_cost = p2_cost +  norm(u(:,j) - u(:,j-1), m);
-            end
-        end
-        cost = p1_cost + lambda*p2_cost;
+        cost = p1_cost;
         minimize(cost)
         % constraints
         subject to
@@ -64,7 +68,11 @@ function [count, dev] = p1_variationA(lambda, n_power, m)
             for t=1:T-1
                x(:,t+1) == A*x(:,t) + b*u(:,t); 
             end
+
     cvx_end
+
+    x_new = x;
+    u_new = u;
 
 %% a) - Optimal Positions
 %
@@ -83,18 +91,15 @@ function [count, dev] = p1_variationA(lambda, n_power, m)
     end
     plot(aux(1,:), aux(2,:), 'mo','MarkerSize', 10)
     legend('p(t)','\omega_k','p(\tau_k)','Interpreter', 'Latex')
-    if n_power == 2
-        tle = strcat('\begin{tabular}{c} Optimal Position \\', '$ {l}_', num2str(m),'^',num2str(n_power),' $',' Regularizer',' // ',strcat('$ \lambda $ = ', num2str(lambda)), '\end{tabular}');
-    else
-        tle = strcat('\begin{tabular}{c} Optimal Position \\', '$ {l}_', num2str(m),' $',' Regularizer',' // ',strcat('$ \lambda $ = ', num2str(lambda)), '\end{tabular}');
-    end
+
+    tle = strcat('\begin{tabular}{c} Optimal Position \\', 'Weighted Version for M = ', num2str(M), '\end{tabular}');
 
     title(tle, 'Interpreter', 'Latex')
     xlabel('$ p_1 $ ','Interpreter', 'Latex')
     ylabel('$ p_2 $','Interpreter', 'Latex')
 
-    %% b) Control Signal
-    %
+%% b) Control Signal
+%
 
     % plot util point T-1 
     figure 
@@ -102,34 +107,28 @@ function [count, dev] = p1_variationA(lambda, n_power, m)
     hold on
     plot(linspace(0, 78,79), u(2, 1:79))
     legend(' u_{1}(t) ', ' u_{2}(t) ','Interpreter', 'Latex')
-    if n_power == 2
-        tle = strcat('\begin{tabular}{c} Control Signal \\', '$ {l}_', num2str(m),'^',num2str(n_power),' $',' Regularizer',' // ',strcat('$ \lambda $ = ', num2str(lambda)), '\end{tabular}');
-    else
-        tle = strcat('\begin{tabular}{c} Control Signal \\', '$ {l}_', num2str(m),' $',' Regularizer',' // ',strcat('$ \lambda $ = ', num2str(lambda)), '\end{tabular}');
-    end
+
+    tle = strcat('\begin{tabular}{c} Control Signal \\', 'Weighted Version for M = ', num2str(M), '\end{tabular}');
+
     title(tle, 'Interpreter', 'Latex')
     xlabel('t','Interpreter', 'Latex')
     ylabel('$ u_{1,2} $ ','Interpreter', 'Latex')
 
-%% c) - Count how many times u(t) has changed
+
+
+%% c) - Count how many times the robot captures the waypoints
 %
     count = 0;
-    for i=2:T-1
-        change=norm(u(:,i) - u(:,i-1));
-        if change > 10^-6
-            count = count +1;
-        end
-    end
-    fprintf('u(t) has changed: %d times \n', count)
-
-%% d) - Deviation
-%
-    dev = 0
     for k=1:K
-        dev = dev + norm(E*x(:,tau(:,k)) - w(:,k));
+       if norm(x(1:2,tau(k))-w(:,k)) <= 10^-6
+           count = count +1;
+       end
     end
-    dev = (1/K) * dev;
-    fprintf('deviation = %f for lamda = %f \n', dev, lambda)
 
+    fprintf('The robot has captured %d waypoints of of 6 \n', count)
 
+    x_old =double(x);
+    u_old = double(u);
+    
+    
 end

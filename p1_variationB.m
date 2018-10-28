@@ -1,8 +1,12 @@
-%% Variation A function
+%% Variation B function
 % approximate intermediate regions and simple control signals
 
 
 function [count, dev] = p1_variationB()
+
+%% Constant Definition
+% approximate intermediate regions and simple control signals
+
  %A and b matrix
     A = [1 0 0.1 0; 0 1 0 0.1; 0 0 0.9 0; 0 0 0 0.9];
     b = [0 0; 0 0; 0.1 0; 0 0.1];
@@ -26,7 +30,7 @@ function [count, dev] = p1_variationB()
     r = 2;
     
     % Desired Time on Waypoint
-    tau = [10 25 30 40 50 60];
+    tau = [10 25 30 40 50 60] + 1;
 
     % Maximum force
     U_max = 100;
